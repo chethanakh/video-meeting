@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="utf-8">
+        <title>Display Webcam Stream</title>
+
+        <style>
+            #container {
+                margin: 0px auto;
+                width: 500px;
+                height: 375px;
+                border: 1px #333 solid;
+                border-radius: 5px;
+            }
+
+            #videoElement {
+                width: 500px;
+                height: 375px;
+                background-color: #666;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="container">
+            <video autoplay="true" id="videoElement">
+            </video>
+            <img src="" id="imgElement" alt="">
+        </div>
+        <script>
+            const video = document.querySelector("#videoElement");
+            const img = document.querySelector("#imgElement");
+            const FPS = 3;
+            getMediaInput(true,false)
+            var roomId=20;
+
+            const ws = new WebSocket("ws://localhost:3000/ws?roomId=" + roomId)
+
+                ws.onmessage = function (event) {
+                    console.log(event)
+                    img.src = event.data;
+                }
+
+                ws.onopen = () => {
+                    console.log(`Connected to ws server`);
+                    setInterval(() => {
+                        ws.send(getFrame());
+                    }, 1000 / FPS);
+                }
+
+                const getFrame = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = video.videoWidth;
+                    canvas.height = video.videoHeight;
+                    canvas.getContext('2d').drawImage(video, 0, 0);
+                    const data = canvas.toDataURL('image/png');
+                    return data;
+                }
+
+            function getMediaInput(isVideo,isAudio){
+                if (navigator.mediaDevices.getUserMedia) {
+                    navigator.mediaDevices.getUserMedia({ video: isVideo,audio:isAudio })
+                        .then(function (stream) {
+                            video.srcObject = stream;
+                        })
+                        .catch(function (err0r) {
+                            console.log("Something went wrong!");
+                        });
+                }
+            } 
+        </script>
+    </body>
+
+
+</html>
