@@ -6,17 +6,12 @@ body {
 
 #container{
     width: 100% !important;
-    margin-top: 5%;
-    margin-bottom: 20%;
-    padding-left: 5%;
-    padding-right: 5%;
+    height: 100% !important;
+    position: relative;
 }
 
 #container>video{
-border-radius: 20px;
-}
-#container>video:first-child{
-    width: 50%;
+    border-radius: 10px;
 }
 .bottom-bar {
     position: absolute;

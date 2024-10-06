@@ -1,4 +1,5 @@
-const videoGrid = document.querySelector("#container");
+var ServerAddress="localhost";
+
 var MyStream;
 var myPeerID;
 var myPeer;
@@ -11,23 +12,13 @@ if (navigator.mediaDevices.getUserMedia) {
     navigator.mediaDevices.getUserMedia({ video: isVideo, audio: isAudio })
         .then(function (stream) {
             MyStream=stream;
-            ws = new WebSocket("ws://192.168.1.18:3000/ws?roomId=" + roomId)
+            ws = new WebSocket("ws://"+ServerAddress+":3000/ws?roomId=" + roomId)
             myPeer = new Peer(undefined, {
-                host: '192.168.1.18',
+                host: ServerAddress,
                 port: '3001', 
-                debug: 2,
-                config: {
-                    iceServers: [
-                      { urls: "stun:stun.l.google.com:19302" },
-                      { urls: "turn:0.peerjs.com:3478", username: "peerjs", credential: "peerjsp" }
-                    ],
-                    sdpSemantics: "unified-plan",
-                    iceTransportPolicy: "relay"
-                  }
             })
-
             const MyVideo = document.createElement('video')
-            drawMediaInput(MyVideo, stream);
+            drawMediaInput(MyVideo, stream,"me",{name:"name"});
             ws.onmessage = function (event) {
                 wsReceivedData(JSON.parse(event.data));
             }
@@ -37,7 +28,7 @@ if (navigator.mediaDevices.getUserMedia) {
                 call.answer(stream)
                 const video = document.createElement('video')
                 call.on('stream', function(userVideoStream) {
-                    drawMediaInput(video, userVideoStream)
+                    drawMediaInput(video, userVideoStream,call.peer,call.metadata)
                 })
             })
 
@@ -68,7 +59,7 @@ function newUserConnected(id,userName) {
         options = {metadata: {"name":userName}};
         const call = myPeer.call(id, MyStream,options)
         call.on('stream', function(userVideoStream) {
-            drawMediaInput(video, userVideoStream)
+            drawMediaInput(video, userVideoStream,call.peer,call.metadata)
         })
         call.on('close', () => {
             video.pause()
@@ -81,12 +72,14 @@ function newUserConnected(id,userName) {
 }
 
 
-function drawMediaInput(element, stream) {
+function drawMediaInput(element, stream,id,metadata) {
+    var grid1=$("<div id='video_grid_"+id+"'></div>").html(element);
+    grid1.append("<h3>"+metadata.name+"</h3>")
     element.srcObject = stream
     element.addEventListener('loadedmetadata', () => {
         element.play()
     })
-    videoGrid.append(element)
+    $("#container").append(grid1)
 }
 
 function wsSendData(ws, event, payload = []) {

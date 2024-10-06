@@ -10,14 +10,15 @@ app.use(express.static('public'))
 const { PeerServer } = require('peer');
 const { v4: uuidV4 } = require('uuid');
 
-const port = 3000;
+const port = process.env.PORT||3000;
+const PeerJS_PORT = process.env.PEER_JS_PORT||3001;
 
-const peerServer = PeerServer({ port: 3001, path: '/' });
+const peerServer = PeerServer({ port: PeerJS_PORT, path: '/' });
 
 var connectionList = [];
 
 server.listen(port, () => {
-    console.log("Server Started..")
+    console.log("Server Started on "+port)
 })
 
 const wss = new WebSocket.Server({
@@ -27,12 +28,12 @@ const wss = new WebSocket.Server({
 
 
 app.get('/', (req, res) => {
-    res.redirect(`/${uuidV4()}`)
-  })
+    res.render('home', { roomId: uuidV4() })
+})
   
-  app.get('/:room', (req, res) => {
+app.get('/:room', (req, res) => {
     res.render('room', { roomId: req.params.room })
-  })
+})
 
 
 wss.on("connection", function (ws, req) {
